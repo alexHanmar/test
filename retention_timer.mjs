@@ -29,29 +29,37 @@ export function bootstrapUserRetentionTimer({
   let accumulatedSeconds = Number(storage.getItem(STORAGE_KEY)) || 0;
   let startedAtMs = now();
   let intervalId = null;
+  let isRunning = false;
+
+  const getCurrentTotal = () => (
+    isRunning
+      ? calculateElapsedSeconds(accumulatedSeconds, startedAtMs, now())
+      : accumulatedSeconds
+  );
 
   const render = () => {
-    const totalSeconds = documentRef.hidden
-      ? accumulatedSeconds
-      : calculateElapsedSeconds(accumulatedSeconds, startedAtMs, now());
-
+    const totalSeconds = getCurrentTotal();
     display.textContent = formatDuration(totalSeconds);
     display.setAttribute('datetime', `PT${totalSeconds}S`);
   };
 
   const persistActiveTime = () => {
-    if (!documentRef.hidden) {
-      accumulatedSeconds = calculateElapsedSeconds(
-        accumulatedSeconds,
-        startedAtMs,
-        now(),
-      );
-      storage.setItem(STORAGE_KEY, String(accumulatedSeconds));
-    }
+    if (!isRunning) return;
+
+    accumulatedSeconds = calculateElapsedSeconds(
+      accumulatedSeconds,
+      startedAtMs,
+      now(),
+    );
+    storage.setItem(STORAGE_KEY, String(accumulatedSeconds));
+    isRunning = false;
   };
 
   const start = () => {
+    if (isRunning) return;
+
     startedAtMs = now();
+    isRunning = true;
     if (intervalId === null) {
       intervalId = setIntervalRef(render, 1000);
     }
