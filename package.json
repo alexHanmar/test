@@ -1,0 +1,8 @@
+{
+  "name": "test-retention-timer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test retention_timer.test.mjs"
+  }
+}
